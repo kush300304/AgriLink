@@ -1,0 +1,684 @@
+:root {
+  --white: #fff;
+  --primary: #5693d5;
+  --color-white: #fff;
+  --color-primary: rgb(59, 58, 58);
+  --color-secondary: black;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+html {
+  box-sizing: border-box;
+  font-size: 62.5%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+@media screen and (max-width: 37.5em) {
+  html {
+    font-size: 50%;
+  }
+}
+
+@media screen and (max-width: 37.5em) {
+  html {
+    font-size: 40%;
+  }
+}
+
+body {
+  margin: 0;
+  overflow: hidden !important;
+  font-family: "Source Sans 3", sans-serif !important;
+  color: var(--white) !important;
+}
+
+.heading-1,
+.heading-2,
+.heading-3,
+.heading-4 {
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: 400;
+}
+
+.heading-1 {
+  font-size: 4.5rem;
+  color: #352720;
+  line-height: 1;
+}
+
+.heading-2 {
+  font-size: 4rem;
+  font-style: italic;
+  line-height: 1;
+}
+
+.heading-2--light {
+  color: #f9f7f6;
+}
+
+.heading-2--dark {
+  color: #352518;
+}
+
+.heading-3 {
+  font-size: 1.6rem;
+  color: #c69963;
+  text-transform: uppercase;
+}
+
+.heading-4 {
+  font-size: 1.9rem;
+}
+
+.heading-4--light {
+  color: #f9f7f6;
+}
+
+.heading-4--dark {
+  color: #352518;
+}
+
+.btn {
+  background-color: #c69963;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  font-family: "Josefin Sans", sans-serif;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  padding: 1.8rem 3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background-color: #b28451;
+}
+
+.mb-sm {
+  margin-bottom: 2rem;
+}
+
+.mb-md {
+  margin-bottom: 3rem;
+}
+
+.mb-lg {
+  margin-bottom: 4rem;
+}
+
+.mb-hg {
+  margin-bottom: 8rem;
+}
+
+.nav__container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 2rem;
+  background-color: #3c2317;
+  opacity: 0.9;
+  border: 2px solid white;
+}
+
+@media screen and (max-width: 37.5em) {
+  .nav__container {
+    justify-content: center;
+  }
+}
+
+.nav__links {
+  width: 50vh;
+  font-size: 2rem;
+  color: #d8dddb;
+  display: flex;
+  justify-content: space-between;
+}
+
+.Anchor_style {
+  text-decoration: none;
+  color: white;
+  outline: none;
+}
+
+.Anchor_style:hover {
+  color: grey;
+}
+
+.company {
+  display: flex;
+}
+
+.company__name {
+  color: aliceblue;
+  font-size: 4rem;
+  font-weight: 700;
+}
+
+.company__logo {
+  width: 6rem;
+}
+
+.header {
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(rgba(27, 27, 27, 0.534), rgba(1, 1, 1, 0.7)),
+    url("https://img.freepik.com/free-photo/beautiful-view-green-fields-sunrise-captured-canggu-bali_181624-14146.jpg?w=1060&t=st=1682018724~exp=1682019324~hmac=34bcf5b58abf38bfae4bec307a9492d150dc86783819691419cb9f8d449d0c45");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  border-bottom: 5px solid whitesmoke;
+}
+
+.content {
+  width: 50%;
+  text-align: center;
+  margin-top: -10rem;
+  border: 2px solid white;
+  height: 35%;
+  border-radius: 20px;
+}
+
+.content .logo {
+  width: 50%;
+  position: absolute;
+  top: 1rem;
+  left: 2vw;
+}
+
+.content h1 {
+  font-size: 4.5em;
+  font-family: "Raleway", sans-serif;
+  font-weight: 900;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.content h2 {
+  font-size: 2.5em;
+  letter-spacing: 0.7rem;
+  font-family: "Raleway", sans-serif;
+  font-weight: 600;
+}
+
+.content .social_icons {
+  position: absolute;
+  width: 10%;
+  left: 90%;
+  bottom: 10%;
+}
+
+.content .social_icons:before {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background-color: var(--white);
+  position: absolute;
+  top: -100%;
+}
+
+.content .social_icons a {
+  margin: 1rem 0px;
+  color: var(--white);
+  display: block;
+  text-decoration: none;
+  font-size: 3em;
+  transition: 0.5s;
+}
+
+
+.Cont {
+  background-color: rgb(206, 198, 192);
+  padding-bottom: 30px;
+  border-bottom: 5px solid whitesmoke;;
+}
+
+.FAQs {
+  width: 70%;
+  margin: auto;
+  padding: 20px;
+  font-size: 2rem;
+}
+
+.collapse {
+  background-color: rgb(206, 198, 192);
+  color: black;
+}
+
+.accordion-header {
+  background-color: rgb(206, 198, 192);
+}
+
+.accordion-button {
+  font-size: x-large !important;
+  background-color: #645f5f !important;
+  color: white !important;
+  font-weight: bold !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  border-radius: 15px !important;
+}
+
+@-webkit-keyframes bounce {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-30px);
+  }
+
+  60% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-30px);
+  }
+
+  60% {
+    transform: translateY(-15px);
+  }
+}
+
+.content .button {
+  position: relative;
+  top: 5rem;
+}
+
+.searchBox {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  display: flex;
+  gap: 2rem;
+}
+
+.searchButton {
+  cursor: pointer;
+  color: white;
+  float: right;
+  width: auto;
+  padding: 1rem 2rem;
+  border-radius: 4rem;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.4s;
+  border: 0;
+  font-style: normal !important;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--white);
+}
+
+@media screen and (max-width: 62.5em) {
+  .content h1 {
+    font-size: 2em;
+  }
+}
+
+@media screen and (max-width: 50em) {
+  .content {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .content .logo {
+    width: 20%;
+  }
+
+  .content h1 {
+    font-size: 1.5em;
+  }
+
+  .content .social_icons {
+    position: absolute;
+    width: 100%;
+    top: 75%;
+    left: -1%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .content .social_icons a {
+    margin: 0 1.5rem;
+  }
+
+  .content .social_icons:before {
+    content: "";
+    width: 0px;
+    height: 0%;
+    top: 0%;
+  }
+
+  .searchBox:hover>.searchButton {
+    font-size: 1.3rem;
+    white-space: nowrap;
+  }
+
+  .searchBox:hover {
+    display: flex;
+    width: 100%;
+  }
+}
+
+.features {
+  background-color: rgb(206, 198, 192);
+  padding: 5rem;
+  padding-bottom: 10rem;
+  border-bottom: 4px solid white;
+}
+
+.features__heading {
+  font-size: 3.5rem;
+  text-align: center;
+  padding: 5rem;
+  color: #302a22;
+  text-decoration: underline;
+}
+
+.features__box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5rem;
+}
+
+.box-wrapper {
+  width: 352px;
+  margin: 0 auto;
+  border-radius: 1px;
+  background: #d8d5d5;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.box-photo {
+  display: block;
+  position: relative;
+  height: 300px;
+  padding: 30px;
+  width: 100%;
+  box-shadow: 2rem 0.1rem 3rem rgba(0, 0, 0, 0.349);
+}
+
+.box-photo-1 {
+  background-image: url(https://wallpapercave.com/wp/wp2661490.jpg);
+  background-size: cover;
+}
+
+.box-photo-2 {
+  background-image: url(https://img.freepik.com/free-vector/indian-rupee-money-bag_23-2148019023.jpg?w=740&t=st=1682194128~exp=1682194728~hmac=ffe64152ce219da4e52e3bcf1c896aaa63112b485ca8c7cc4a286b404494c691);
+  background-size: cover;
+}
+
+.box-photo-3 {
+  background-image: url(https://th.bing.com/th/id/OIP._9SBzjfAMhB9fW_bbFUOfAHaEo?pid=ImgDet&rs=1);
+  background-size: cover;
+}
+
+.box-photo p {
+  position: absolute;
+  top: 180px;
+  font-family: "Raleway", sans-serif;
+  font-size: 33px;
+  font-style: normal;
+  font-weight: 300;
+  color: #fff;
+  line-height: 40px;
+  text-shadow: 1px 1px 1px 0.1 #000;
+}
+
+.feature-photo:hover .buttons,
+.feature-photo:hover a {
+  opacity: 1;
+}
+
+.buttons {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  -webkit-transition: opacity 0.25s ease-in;
+  -ms-transition: opacity 0.25s ease-in;
+  -moz-transition: opacity 0.25s ease-in;
+  -o-transition: opacity 0.25s ease-in;
+  transition: opacity 0.25s ease-in;
+  white-space: nowrap;
+}
+
+.buttons a {
+  display: block;
+  position: absolute;
+  left: 120px;
+  width: 120px;
+  padding: 15px;
+  font-family: "Raleway", sans-serif;
+  font-size: 15px;
+  text-align: center;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  opacity: 0;
+}
+
+a.view {
+  top: 40%;
+  background: rgba(0, 0, 0, 0.85);
+  -webkit-transition: background 0.2s ease-in;
+  -ms-transition: background 0.2s ease-in;
+  -moz-transition: background 0.2s ease-in;
+  -o-transition: background 0.2s ease-in;
+  transition: background 0.2s ease-in;
+  border: 2px solid #000;
+}
+
+.view:hover {
+  background: #000;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.info {
+  display: block;
+  position: relative;
+  padding: 30px;
+  background-color: #645f5f;
+  box-shadow: 2rem 0.1rem 3rem rgba(0, 0, 0, 0.349);
+}
+
+.info h4 {
+  position: relative;
+  padding: 0 0 20px 0;
+  margin: 0 0 20px 0;
+  font-family: "Raleway", sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #fff;
+  letter-spacing: -0.5px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.info h4::after {
+  display: block;
+  position: absolute;
+  bottom: 0px;
+  content: "";
+  width: 40px;
+  height: 2px;
+  background: #3b86c4;
+}
+
+.info .description {
+  display: block;
+  font-family: "Raleway", sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 300;
+  color: #c2ced8;
+  line-height: 1.8;
+  text-shadow: 1px 1px 1px 0.1 #000;
+}
+
+.readmore {
+  padding-left: 5px;
+  font-family: "Raleway", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #858485;
+  text-decoration: none;
+  -webkit-transition: background-color 0.14s ease-out, color 0.14s ease-out;
+  -moz-transition: background-color 0.14s ease-out, color 0.14s ease-out;
+  -ms-transition: background-color 0.14s ease-out, color 0.14s ease-out;
+  -o-transition: background-color 0.14s ease-out, color 0.14s ease-out;
+  transition: background-color 0.14s ease-out, color 0.14s ease-out;
+}
+
+.readmore:hover {
+  color: #fff;
+}
+
+.footer {
+  padding: 4rem 7rem 1rem 6rem;
+  background-color: var(--color-secondary);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+}
+
+.footer .footer__container {
+  display: flex;
+  gap: 3rem;
+  justify-content: space-between;
+}
+
+@media screen and (max-width: 37.5em) {
+  .footer .footer__container {
+    flex-wrap: wrap;
+    padding: 1rem;
+  }
+}
+
+.footer .footer__container .header__brand__name__footer {
+  font-size: 4rem;
+  font-weight: 600;
+  line-height: 0.8;
+  color: var(--color-white);
+}
+
+.footer .footer__container .header__brand__name__footer--title {
+  color: #b28451;
+}
+
+.footer .footer__container__about {
+  width: 50%;
+  margin-left: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media screen and (max-width: 37.5em) {
+  .footer .footer__container__about {
+    flex-wrap: wrap;
+    width: 100%;
+    margin-left: 1rem;
+  }
+}
+
+.footer .footer__container__about--text {
+  color: var(--color-white);
+  font-size: 1.7rem;
+}
+
+.footer .footer__container__contact {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  color: var(--color-white);
+  font-size: 1.5rem;
+}
+
+@media screen and (max-width: 37.5em) {
+  .footer .footer__container__contact {
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 1rem;
+  }
+}
+
+.footer .footer__container__contact__heading {
+  font-size: 2.7rem;
+}
+
+.footer .footer__container__contact__link,
+.footer .footer__container__contact__link:active,
+.footer .footer__container__contact__link:visited {
+  text-decoration: none;
+  color: inherit;
+}
+
+
+.hr__line {
+  background-color: #776565;
+  height: 1px;
+  width: 83vw;
+}
+
+.copyright {
+  margin-top: -2rem;
+  font-size: 1.7rem;
+  color: var(--color-white);
+  font-family: "lato";
+  font-style: italic;
+}
+
+@media screen and (max-width: 37.5em) {
+  .copyright {
+    width: 110%;
+  }
+}
