@@ -14,14 +14,3 @@ Farmify is a Non-Profit Organization that provides Farmers exposure and opportun
 
 
 ```
-
-# Team Members
-
-| Name          |  Enrollment   |
-| ------------- | ------------- |
-| Himanshu Dixit  | 21103262  |
-| Ajit Kumar  | 21103317  |
-| Aashutosh pradhan  | 21103242  |
-| Rohan Siwach  | 21103261  |
-| Aman Upadhaya  | 21103263 |
-| Kamal Garg  | 21103231  |
