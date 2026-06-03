@@ -7,29 +7,29 @@ const CompanySchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: [true, " required field"],
-    min: [3,"please enter valid name"],
+    min: [3, "please enter valid name"],
     max: 20,
   },
   lastName: {
     type: String,
-    required: [true,"required field"],
+    required: [true, "required field"],
     min: 3,
     max: 4,
   },
   companyName: {
     type: String,
-    required: [true,"required field"],
+    required: [true, "required field"],
   },
   contactNo: {
     type: String,
-    required: [true,"required field"],
-    min: [10,"please enetr valid contact no."],
+    required: [true, "required field"],
+    min: [10, "please enetr valid contact no."],
     max: 10,
     unique: true,
   },
   email: {
     type: String,
-    required: [true,"required field"],
+    required: [true, "required field"],
     unique: true,
     validate: [validator.isEmail, "invalid email id"],
   },
@@ -47,6 +47,7 @@ const CompanySchema = new mongoose.Schema({
     required: true,
     min: 8,
     max: 16,
+    select: false,
   },
   orders: [
     {
@@ -70,9 +71,10 @@ const CompanySchema = new mongoose.Schema({
 // Encrypting password before saving
 CompanySchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 // compare user password
@@ -80,9 +82,9 @@ CompanySchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// return JSON Web Tocken(jwt)
+// Return a signed JSON Web Token carrying the user id and role.
 CompanySchema.methods.getJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: "company" }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_TIME,
   });
 };

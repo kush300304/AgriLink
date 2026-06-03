@@ -1,0 +1,8 @@
+node_modules
+coverage
+public/assets/css
+public/sass
+public/assets/js/charts-bars.js
+public/assets/js/charts-lines.js
+public/assets/js/charts-pie.js
+public/assets/js/focus-trap.js

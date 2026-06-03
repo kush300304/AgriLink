@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
-const Crop = require("./crop");
 
 const farmerSchema = new mongoose.Schema({
   firstName: {
@@ -85,9 +84,10 @@ const farmerSchema = new mongoose.Schema({
 // Encrypting password before saving
 farmerSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 // compare user password
@@ -95,9 +95,9 @@ farmerSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// return JSON Web Tocken(jwt)
+// Return a signed JSON Web Token carrying the user id and role.
 farmerSchema.methods.getJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: "farmer" }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_TIME,
   });
 };

@@ -416,6 +416,19 @@
                       <div  class="py-3 px-3 border-b border-gray-300" style="font-weight: 200; font-size: 1rem;">
                         Id:- <%= farmers[i]._id %>
                       </div>
+                      <% if (priceInsights && priceInsights[farmers[i]._id] && priceInsights[farmers[i]._id].length) { %>
+                      <div style="margin-top: 1rem; text-align: left; background-color: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 0.75rem;">
+                        <div style="font-weight: 700; color: #c2410c; margin-bottom: 0.4rem;">Fair Price Insight (₹/quintal)</div>
+                        <% priceInsights[farmers[i]._id].forEach(function(p){ %>
+                          <div style="font-size: 0.85rem; color: #7c2d12; margin-bottom: 0.25rem;">
+                            <strong><%= p.crop %></strong>: fair floor ₹<%= p.farmerFloorPerQuintal %>
+                            + logistics ₹<%= p.logisticsPerQuintal %>
+                            = landed <strong>₹<%= p.buyerLandedPerQuintal %></strong>
+                          </div>
+                        <% }); %>
+                        <div style="font-size: 0.7rem; color: #9a3412; margin-top: 0.3rem;">Reference MSP-based estimate incl. distance.</div>
+                      </div>
+                      <% } %>
                       <input style="margin-top: 1rem;"
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         name="input_area"

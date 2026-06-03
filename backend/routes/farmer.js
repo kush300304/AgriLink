@@ -1,12 +1,23 @@
 const express = require("express");
 const router = express.Router();
 
-const { registerFarmer, loginFarmer, getfarmers, getOrder } = require("../controllers/farmer");
+const {
+  registerFarmer,
+  loginFarmer,
+  getfarmers,
+  getOrder,
+} = require("../controllers/farmer");
 
-const { isAuthenticatedUser } = require("../middlewares/isAuthenticated");
+const {
+  isAuthenticatedUser,
+  authorizeRoles,
+} = require("../middlewares/isAuthenticated");
+const { ROLES } = require("../utils/auth");
 
 router.route("/farmer").get(getfarmers);
-router.route("/farmer/order/:id").patch(getOrder);
+router
+  .route("/farmer/order/:id")
+  .patch(isAuthenticatedUser, authorizeRoles(ROLES.COMPANY), getOrder);
 router.route("/farmer/register").post(registerFarmer);
 router.route("/farmer/login").post(loginFarmer);
 

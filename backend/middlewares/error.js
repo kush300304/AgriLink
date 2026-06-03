@@ -1,53 +1,49 @@
 const ErrorHandler = require("../utils/errorHandler");
 
-module.exports = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
+// Centralized error handler. Always sends a response (previously it only
+// responded in DEVELOPMENT/PRODUCTION, which could hang other environments).
+module.exports = (err, req, res, _next) => {
+  let error = err;
+  error.statusCode = error.statusCode || 500;
+  error.message = error.message || "Internal Server Error";
+
+  // Wrong mongoose object Id
+  if (err.name === "CastError") {
+    error = new ErrorHandler(`Resource not found. Invalid: ${err.path}`, 400);
+  }
+
+  // Mongoose validation error (e.g. a required field is missing)
+  if (err.name === "ValidationError") {
+    const message = Object.values(err.errors).map((value) => value.message);
+    error = new ErrorHandler(message, 400);
+  }
+
+  // Mongoose duplicate key (e.g. registering with an existing email)
+  if (err.code === 11000) {
+    const message = `Duplicate ${Object.keys(err.keyValue)} entered.`;
+    error = new ErrorHandler(message, 400);
+  }
+
+  // Invalid JWT
+  if (err.name === "JsonWebTokenError") {
+    error = new ErrorHandler("JSON Web Token is invalid. Try again.", 401);
+  }
+
+  // Expired JWT
+  if (err.name === "TokenExpiredError") {
+    error = new ErrorHandler("JSON Web Token has expired. Try again.", 401);
+  }
+
+  const body = {
+    success: false,
+    message: error.message,
+  };
+
+  // Extra detail while developing.
   if (process.env.NODE_ENV === "DEVELOPMENT") {
-    res.status(err.statusCode).json({
-      success: false,
-      error: err,
-      errMessage: err.message,
-      stack: err.stack,
-    });
+    body.error = err;
+    body.stack = err.stack;
   }
 
-  if (process.env.NODE_ENV === "PRODUCTION") {
-    let error = { ...err };
-    error.message = err.message;
-
-    // Wrong mongoose object Id Error
-    if (err.name === "CastError") {
-      const message = `Resource not found, Invalid: ${err.path}`;
-      error = new ErrorHandler(message, 400);
-    }
-
-    // Handling Mongoose validation Error     (if required path is not given)
-    if (err.name === "ValidationError") {
-      const message = Object.values(err.errors).map((value) => value.message);
-      error = new ErrorHandler(message, 400);
-    }
-
-    // Handling mongoose duplicate key Error (cheating account with same email)
-    if (err.code === 11000) {
-      const message = `Duplicate ${Object.keys(err.keyValue)} entered.`;
-      error = new ErrorHandler(message, 400);
-    }
-
-    // Handling wrong JWT error
-    if (err.name === "JsonWebTokenError") {
-      const message = "JSON Web token not valid, Please try again!!!";
-      error = new ErrorHandler(message, 400);
-    }
-
-    // Handling Expire JWT error
-    if (err.name === "TokenExpiredError") {
-      const message = "JSON Web token is expired, Please try again!!!";
-      error = new ErrorHandler(message, 400);
-    }
-
-    res.status(err.statusCode).json({
-      success: false,
-      message: error.message || "Internal Server Error",
-    });
-  }
+  res.status(error.statusCode).json(body);
 };
