@@ -1,320 +1,300 @@
 const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
-const { default: axios } = require("axios");
+const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 
+const errorMiddleware = require("./backend/middlewares/error");
+const { attachUser } = require("./backend/middlewares/isAuthenticated");
+const { setAuthCookie, signToken, ROLES } = require("./backend/utils/auth");
+const farmerService = require("./backend/services/farmerService");
+const companyService = require("./backend/services/companyService");
+const { estimateFairPrice } = require("./backend/utils/pricing");
+
+// Setting up the config file early so env vars are available everywhere.
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({ path: "./backend/config/config.env" });
+}
 
 const app = express();
 
-const cookieParser = require("cookie-parser");
-const errorMiddleware = require('.//backend/middlewares/error');
-
-app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "/views/")); // suggested
-app.use(express.static("public"));
+app.set("views", path.join(__dirname, "/views/"));
 
-const distance = [];
-distance["Jeevan Singhpura, Alwar"]= 167;
-distance["Mohanpur Ishrana Rambas Road, Mohanpur, Rewari"]= 135;
-distance["77R4+XGV, Sarmathla, Bhanakpur, Haryana"]= 58;
-distance["2G66+CQ, Baghela, Punjab"]= 403;
-distance["Kotkasim, Alwar"]= 132;
-
-//setting up config file
-if (process.env.NODE_ENV !== "PRODUCTION") require("dotenv").config({ path: "./backend/config/config.env" });
-
+// Security headers. CSP is disabled because the EJS templates rely on inline
+// scripts and several CDNs (Alpine.js, Chart.js, Google Fonts, Font Awesome).
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
 
-// importing all routes
+// Distance (in km) from AgriLink's hub to known farmer locations. Used both for
+// display and for the distance-based logistics part of the fair-price estimate.
+const distance = {
+  "Jeevan Singhpura, Alwar": 167,
+  "Mohanpur Ishrana Rambas Road, Mohanpur, Rewari": 135,
+  "77R4+XGV, Sarmathla, Bhanakpur, Haryana": 58,
+  "2G66+CQ, Baghela, Punjab": 403,
+  "Kotkasim, Alwar": 132,
+};
+
+// Make the logged-in user available to every route/view.
+app.use(attachUser);
+
+// API routes
 const farmers = require("./backend/routes/farmer");
 const companies = require("./backend/routes/company");
+const prices = require("./backend/routes/price");
 
-app.use('/api/v1', farmers);
-app.use('/api/v1', companies);
+app.use("/api/v1", farmers);
+app.use("/api/v1", companies);
+app.use("/api/v1", prices);
 
-let currComp, currFarmer;
-app.get("/", function (req, res) {
+// ---------------------------------------------------------------------------
+// View-context helpers
+// ---------------------------------------------------------------------------
+function companyDashboardContext(company, extra = {}) {
+  return {
+    firstName: company.firstName,
+    lastName: company.lastName,
+    companyName: company.companyName,
+    email: company.email,
+    address: company.address,
+    gst: company.gst,
+    orders: company.orders || [],
+    distance,
+    hasQuery: false,
+    message: "",
+    farmers: [],
+    priceInsights: {},
+    ...extra,
+  };
+}
+
+function farmerDashboardContext(farmer, extra = {}) {
+  return {
+    firstName: farmer.firstName,
+    lastName: farmer.lastName,
+    email: farmer.email,
+    contactNo: farmer.contactNo,
+    aadhar: farmer.aadhar,
+    land: farmer.land,
+    Address: farmer.Address,
+    crops: farmer.crops || [],
+    orders: farmer.orders || [],
+    ...extra,
+  };
+}
+
+// Build per-farmer Fair Price Insight: a per-quintal estimate for each crop the
+// farmer grows, factoring the buyer→farmer distance.
+function buildPriceInsights(farmerList) {
+  const insights = {};
+  farmerList.forEach((farmer) => {
+    const distanceKm = distance[farmer.Address] || 0;
+    insights[farmer._id] = (farmer.crops || [])
+      .map((crop) => estimateFairPrice({ crop, distanceKm }))
+      .filter(Boolean);
+  });
+  return insights;
+}
+
+// ---------------------------------------------------------------------------
+// Public pages
+// ---------------------------------------------------------------------------
+app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.get("/home", function (req, res) {
-  res.render("home");
+app.get("/home", (req, res) => res.render("home"));
+app.get("/login", (req, res) => res.render("login"));
+app.get("/signup", (req, res) => res.render("signup"));
+app.get("/tandc", (req, res) => res.render("TANDC"));
+
+app.get("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.redirect("/home");
 });
 
-app.get("/login", function (req, res) {
-  res.render("login");
-});
+// ---------------------------------------------------------------------------
+// Auth flows (web)
+// ---------------------------------------------------------------------------
+function loginCookie(res, user, role) {
+  setAuthCookie(res, signToken(user._id, role));
+}
 
 app.post("/logincompany", async (req, res) => {
-  const companyDetails = {
-    email: req.body.cemail,
-    contactNo: req.body.ccontactNo,
-    password: req.body.cpassword,
-  };
-  const config = {
-    headers: {
-      "content-type": "application/json",
-    },
-  };
   try {
-    const { data } = await axios.post(
-      "http://127.0.0.1:3000/api/v1/company/login",
-      companyDetails,
-      config
-    );
-    if (data) {
-      currComp = data.user;
-      res.render("companyDashboard", {
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        companyName: data.user.companyName,
-        email: data.user.email,
-        address: data.user.address,
-        gst: data.user.gst,
-        orders: data.user.orders,
-        hasQuery: false,
-        distance:distance,
-        message: ""
-      });
-    } else {
-      console.log("Something went wrong")
-    }
+    const company = await companyService.loginCompany({
+      email: req.body.cemail,
+      contactNo: req.body.ccontactNo,
+      password: req.body.cpassword,
+    });
+    loginCookie(res, company, ROLES.COMPANY);
+    res.render("companyDashboard", companyDashboardContext(company));
   } catch (error) {
-    console.log(error.response.data.errMessage);
-  }
-});
-app.post("/loginfarmer", async (req, res) => {
-  const farmerdetails = {
-    email: req.body.email,
-    contactNo: req.body.contactNo,
-    password: req.body.password,
-  };
-  const config = {
-    headers: {
-      "content-type": "application/json",
-    },
-  };
-  try {
-    const { data } = await axios.post(
-      "http://127.0.0.1:3000/api/v1/farmer/login",
-      farmerdetails,
-      config
-    );
-    if (data) {
-      res.render("farmerDashboard", {
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        email: data.user.email,
-        contactNo: data.user.contactNo,
-        aadhar: data.user.aadhar,
-        land: data.user.land,
-        Address: data.user.Address,
-        crops: data.user.crops,
-        orders: data.user.orders,
-      });
-    } else {
-      console.log("something went wrong");
-    }
-  } catch (error) {
-    console.log(error.response.data.errMessage);
+    res.status(error.statusCode || 401).render("login", {
+      error: error.message || "Login failed",
+    });
   }
 });
 
-app.get("/signup", function (req, res) {
-  res.render("signup");
+app.post("/loginfarmer", async (req, res) => {
+  try {
+    const farmer = await farmerService.loginFarmer({
+      email: req.body.email,
+      contactNo: req.body.contactNo,
+      password: req.body.password,
+    });
+    loginCookie(res, farmer, ROLES.FARMER);
+    res.render("farmerDashboard", farmerDashboardContext(farmer));
+  } catch (error) {
+    res.status(error.statusCode || 401).render("login", {
+      error: error.message || "Login failed",
+    });
+  }
 });
 
 app.post("/registercompany", async (req, res) => {
-  const config = {
-    headers: {
-      "content-type": "application/json",
-    },
-  };
-  let companyDetails = {
-    firstName: req.body.cfirstName,
-    lastName: req.body.clastName,
-    companyName: req.body.companyName,
-    contactNo: req.body.ccontactNo,
-    email: req.body.cemail,
-    address: req.body.caddress,
-    gst: req.body.cgst,
-    password: req.body.cpassword,
-    orders: [],
-  };
   try {
-    const { data } = await axios.post(
-      "http://127.0.0.1:3000/api/v1/company/register",
-      companyDetails,
-      config
-    );
-    currComp = data.user;
-    res.render("companyDashboard", {
-      firstName: data.user.firstName,
-      lastName: data.user.lastName,
-      companyName: data.user.companyName,
-      email: data.user.email,
-      address: data.user.address,
-      gst: data.user.gst,
-      orders: data.user.orders,
-      distance: distance,
-      hasQuery: false,
-      message: ""
+    const company = await companyService.registerCompany({
+      firstName: req.body.cfirstName,
+      lastName: req.body.clastName,
+      companyName: req.body.companyName,
+      contactNo: req.body.ccontactNo,
+      email: req.body.cemail,
+      address: req.body.caddress,
+      gst: req.body.cgst,
+      password: req.body.cpassword,
+      orders: [],
     });
+    loginCookie(res, company, ROLES.COMPANY);
+    res.render("companyDashboard", companyDashboardContext(company));
   } catch (error) {
-    console.log(error.response.data.errMessage);
+    res.status(error.statusCode || 400).render("signup", {
+      error: error.message || "Registration failed",
+    });
   }
 });
+
+const FARMER_CROP_FIELDS = [
+  "crop1",
+  "crop2",
+  "crop3",
+  "crop4",
+  "crop5",
+  "crop6",
+  "crop7",
+];
 
 app.post("/registerfarmer", async (req, res) => {
-  let crops = [];
-  if (req.body.crop1 === "Rice") {
-    crops.push("Rice");
-  }
-  if (req.body.crop2 === "Wheat") {
-    crops.push("Wheat");
-  }
-  if (req.body.crop3 === "Barley") {
-    crops.push("Barley");
-  }
-  if (req.body.crop4 === "Oats") {
-    crops.push("Oats");
-  }
-  if (req.body.crop5 === "Pulse") {
-    crops.push("Pulse");
-  }
-  if (req.body.crop6 === "Maize") {
-    crops.push("Maize");
-  }
-  if (req.body.crop7 === "Sugarcan") {
-    crops.push("Sugarcan");
-  }
-
-  const config = {
-    headers: {
-      "content-type": "application/json",
-    },
-  };
-  let farmerdetails = {
-    firstName: req.body.fname,
-    lastName: req.body.lname,
-    dob: req.body.dob,
-    contactNo: req.body.contactNo,
-    email: req.body.email,
-    aadhar: req.body.aadhar,
-    land: req.body.land,
-    Address: req.body.Address,
-    password: req.body.password,
-    crops,
-
-    orders: [],
-  };
   try {
-    const { data } = await axios.post(
-      "http://127.0.0.1:3000/api/v1/farmer/register",
-      farmerdetails,
-      config
+    const crops = FARMER_CROP_FIELDS.map((field) => req.body[field]).filter(
+      (crop) => crop && crop.trim() !== ""
     );
-    if (data) {
 
-      res.render("farmerDashboard", {
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        email: data.user.email,
-        contactNo: data.user.contactNo,
-        aadhar: data.user.aadhar,
-        land: data.user.land,
-        Address: data.user.Address,
-        crops: data.user.crops,
-        orders: data.user.orders,
-      });
-    } else {
-      console.log("Something went wrong");
-    }
-  } catch (error) {
-    console.log(error.response.data.errMessage);
-  }
-});
-
-app.get("/farmerdash", function (req, res) {
-  res.render("farmerDashboard");
-});
-app.get("/tandc", function (req, res) {
-  res.render("TANDC");
-});
-app.get("/companydash", function (req, res) {
-  res.render("companyDashboard");
-});
-app.post("/getfarmers", async (req, res) => {
-  try {
-    const land = req.body.reqLand ? 1 * req.body.reqLand : 0;
-    let query_url;
-    if (req.body.crop) {
-      query_url = `http://127.0.0.1:3000/api/v1/farmer?keyword=${req.body.crop}&land[gte]=${land}`;
-    } else {
-      query_url = `http://127.0.0.1:3000/api/v1/farmer?land[gte]=${land}`;
-    }
-    const { data } = await axios.get(query_url);
-    if (data) {
-      res.render("companyDashboard", {
-        firstName: currComp.firstName,
-        lastName: currComp.lastName,
-        companyName: currComp.companyName,
-        email: currComp.email,
-        address: currComp.address,
-        gst: currComp.gst,
-        orders: currComp.orders,
-        distance: distance,
-        hasQuery: true,
-        farmers: data.farmers,
-        message: "",
-      });
-    } else {
-      console.log("Something Went wrong");
-    }
-  } catch (error) {
-    console.log(error);
-  }
-});
-app.post('/sendorder', async (req, res) => {
-
-  const newOrder = {
-    by: currComp._id,
-    company: currComp.companyName,
-    reqArea: req.body.input_area,
-    crops: req.body.input_crop,
-    amount: req.body.input_amount,
-  }
-
-
-  const config = {
-    headers: {
-      "content-type": "application/json",
-    },
-  };
-  try {
-    const { data } = await axios.patch(
-      `http://127.0.0.1:3000/api/v1/farmer/order/${req.body.fid}`,
-      newOrder,
-      config
-    );
-    res.render("companyDashboard", {
-      firstName: currComp.firstName,
-      lastName: currComp.lastName,
-      companyName: currComp.companyName,
-      email: currComp.email,
-      address: currComp.address,
-      gst: currComp.gst,
-      orders: currComp.orders,
-      distance: distance,
-      hasQuery: false,
-      message: "Order Sent Successfully",
+    const farmer = await farmerService.registerFarmer({
+      firstName: req.body.fname,
+      lastName: req.body.lname,
+      dob: req.body.dob,
+      contactNo: req.body.contactNo,
+      email: req.body.email,
+      aadhar: req.body.aadhar,
+      land: req.body.land,
+      Address: req.body.Address,
+      password: req.body.password,
+      crops,
+      orders: [],
     });
+    loginCookie(res, farmer, ROLES.FARMER);
+    res.render("farmerDashboard", farmerDashboardContext(farmer));
   } catch (error) {
-    console.log(error.response.data.errMessage);
+    res.status(error.statusCode || 400).render("signup", {
+      error: error.message || "Registration failed",
+    });
   }
+});
 
+// ---------------------------------------------------------------------------
+// Authenticated dashboards / actions
+// ---------------------------------------------------------------------------
+function requireRole(role) {
+  return (req, res, next) => {
+    if (!req.user || req.userRole !== role) {
+      return res.redirect("/login");
+    }
+    next();
+  };
+}
+
+app.get("/companydash", requireRole(ROLES.COMPANY), (req, res) => {
+  res.render("companyDashboard", companyDashboardContext(req.user));
+});
+
+app.get("/farmerdash", requireRole(ROLES.FARMER), (req, res) => {
+  res.render("farmerDashboard", farmerDashboardContext(req.user));
+});
+
+app.post("/getfarmers", requireRole(ROLES.COMPANY), async (req, res) => {
+  try {
+    const land = req.body.reqLand ? Number(req.body.reqLand) : 0;
+    const farmerList = await farmerService.getFarmers({
+      keyword: req.body.crop || undefined,
+      land: { gte: land },
+    });
+
+    res.render(
+      "companyDashboard",
+      companyDashboardContext(req.user, {
+        hasQuery: true,
+        farmers: farmerList,
+        priceInsights: buildPriceInsights(farmerList),
+      })
+    );
+  } catch (error) {
+    res.render(
+      "companyDashboard",
+      companyDashboardContext(req.user, {
+        message: error.message || "Something went wrong",
+      })
+    );
+  }
+});
+
+app.post("/sendorder", requireRole(ROLES.COMPANY), async (req, res) => {
+  try {
+    const order = {
+      by: req.user._id,
+      company: req.user.companyName,
+      reqArea: req.body.input_area,
+      crops: req.body.input_crop,
+      amount: req.body.input_amount,
+    };
+
+    await farmerService.addOrder(req.body.fid, order);
+    await companyService.addOrder(req.user._id, {
+      to: req.body.fid,
+      reqArea: req.body.input_area,
+      crops: req.body.input_crop,
+      amount: req.body.input_amount,
+    });
+
+    const company = await companyService.findById(req.user._id);
+    res.render(
+      "companyDashboard",
+      companyDashboardContext(company, {
+        message: "Order Sent Successfully",
+      })
+    );
+  } catch (error) {
+    res.render(
+      "companyDashboard",
+      companyDashboardContext(req.user, {
+        message: error.message || "Could not send order",
+      })
+    );
+  }
 });
 
 // middleware to handle errors

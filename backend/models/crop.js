@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
-const cropScema=new mongoose.Schema({
-    name:String
-  });
+const cropScema = new mongoose.Schema({
+  name: String,
+});
 
-module.exports =new mongoose.model("Crop",cropScema);
+module.exports = new mongoose.model("Crop", cropScema);
